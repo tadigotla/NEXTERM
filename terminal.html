@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXTERM // Web Terminal v3.2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --term-green: #39ff14;
+    --term-green-dim: #1a7a0a;
+    --term-green-glow: rgba(57, 255, 20, 0.35);
+    --term-amber: #ffb700;
+    --term-red: #ff3333;
+    --term-cyan: #00e5ff;
+    --term-magenta: #ff00ff;
+    --term-bg: #0a0a0a;
+    --term-bg-light: #111111;
+    --term-surface: #1a1a1a;
+    --term-border: #222;
+    --term-text: #d4d4d4;
+    --term-muted: #666;
+    --scanline-opacity: 0.04;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #000; overflow: hidden; }
+
+  body {
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    color: var(--term-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .crt-wrapper {
+    width: 100%;
+    max-width: 960px;
+    height: calc(100vh - 32px);
+    max-height: 760px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow:
+      0 0 80px rgba(57, 255, 20, 0.08),
+      0 0 2px rgba(57, 255, 20, 0.3),
+      inset 0 0 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .crt-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,var(--scanline-opacity)) 2px, rgba(0,0,0,var(--scanline-opacity)) 4px);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .crt-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(57, 255, 20, 0.01);
+    z-index: 11;
+    pointer-events: none;
+    animation: flicker 0.08s infinite alternate;
+  }
+
+  @keyframes flicker { 0% { opacity: 0.97; } 100% { opacity: 1; } }
+
+  .terminal {
+    background: var(--term-bg);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--term-surface);
+    border-bottom: 1px solid var(--term-border);
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .title-bar-dots { display: flex; gap: 7px; }
+  .title-bar-dots span { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #28c840; }
+
+  .title-bar-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--term-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .title-bar-status {
+    font-size: 11px;
+    color: var(--term-green-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--term-green);
+    box-shadow: 0 0 6px var(--term-green-glow);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .status-dot.playback {
+    background: var(--term-amber);
+    box-shadow: 0 0 6px rgba(255,183,0,0.5);
+  }
+
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .output-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    scroll-behavior: smooth;
+  }
+
+  .output-area::-webkit-scrollbar { width: 6px; }
+  .output-area::-webkit-scrollbar-track { background: var(--term-bg); }
+  .output-area::-webkit-scrollbar-thumb { background: var(--term-border); border-radius: 3px; }
+
+  .line { white-space: pre-wrap; word-break: break-word; }
+  .line-system { color: var(--term-muted); font-style: italic; }
+  .line-error { color: var(--term-red); }
+  .line-success { color: var(--term-green); }
+  .line-info { color: var(--term-cyan); }
+  .line-warn { color: var(--term-amber); }
+  .line-accent { color: var(--term-magenta); }
+
+  .line-prompt-echo .prompt-user { color: var(--term-green); text-shadow: 0 0 6px var(--term-green-glow); }
+  .line-prompt-echo .prompt-separator { color: var(--term-muted); }
+  .line-prompt-echo .prompt-cmd { color: var(--term-text); }
+
+  .output-table { border-collapse: collapse; margin: 4px 0; font-size: 13px; }
+  .output-table th { color: var(--term-cyan); text-align: left; padding: 2px 16px 2px 0; border-bottom: 1px solid var(--term-border); font-weight: 600; }
+  .output-table td { padding: 2px 16px 2px 0; color: var(--term-text); }
+
+  .ascii-art {
+    color: var(--term-green);
+    text-shadow: 0 0 8px var(--term-green-glow);
+    font-size: 12px;
+    line-height: 1.25;
+    letter-spacing: 1px;
+  }
+
+  .input-area {
+    display: flex;
+    align-items: center;
+    padding: 10px 18px 14px;
+    border-top: 1px solid var(--term-border);
+    background: var(--term-bg-light);
+    flex-shrink: 0;
+  }
+
+  .input-prompt {
+    color: var(--term-green);
+    font-weight: 600;
+    font-size: 14px;
+    text-shadow: 0 0 8px var(--term-green-glow);
+    margin-right: 8px;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--term-text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    caret-color: var(--term-green);
+    letter-spacing: 0.3px;
+  }
+  .input-field::placeholder { color: #333; }
+  .input-field:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ── Playback Control Surface ─────────────────── */
+  .playback-surface {
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #141414 0%, #0e0e0e 40%, #121212 100%);
+    border-top: 1px solid #2a2a2a;
+    border-bottom: 1px solid #0a0a0a;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    position: relative;
+  }
+
+  .playback-surface::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #333 20%, #333 80%, transparent);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .playback-surface::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.006) 1px, rgba(255,255,255,0.006) 2px);
+    pointer-events: none;
+  }
+
+  .transport-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .transport-btn {
+    width: 36px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.1s ease;
+    background: linear-gradient(180deg, #1a1a1a 0%, #151515 50%, #111 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(0,0,0,0.6),
+      inset 0 -1px 1px rgba(255,255,255,0.04),
+      0 1px 0 rgba(255,255,255,0.05),
+      0 -1px 0 rgba(0,0,0,0.8);
+  }
+
+  .transport-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: #777;
+    transition: fill 0.15s ease, filter 0.15s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  .transport-btn:hover {
+    background: linear-gradient(180deg, #222 0%, #1a1a1a 50%, #161616 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(0,0,0,0.5),
+      inset 0 -1px 1px rgba(255,255,255,0.06),
+      0 1px 0 rgba(255,255,255,0.06),
+      0 -1px 0 rgba(0,0,0,0.8);
+  }
+
+  .transport-btn:hover svg { fill: #ccc; }
+
+  .transport-btn:active {
+    background: linear-gradient(180deg, #111 0%, #0e0e0e 50%, #0c0c0c 100%);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(255,255,255,0.02);
+  }
+
+  .transport-btn:active svg { transform: scale(0.92); }
+
+  .transport-btn.active {
+    background: linear-gradient(180deg, #111 0%, #0e0e0e 50%, #0c0c0c 100%);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(255,255,255,0.02);
+  }
+
+  .transport-btn.active svg {
+    fill: var(--term-green);
+    filter: drop-shadow(0 0 4px var(--term-green-glow));
+  }
+
+  .transport-btn.active.is-play svg {
+    fill: var(--term-amber);
+    filter: drop-shadow(0 0 4px rgba(255,183,0,0.5));
+  }
+
+  .transport-divider {
+    width: 1px;
+    height: 20px;
+    margin: 0 4px;
+    background: #0a0a0a;
+    box-shadow: 1px 0 0 rgba(255,255,255,0.04);
+  }
+
+  .progress-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: linear-gradient(180deg, #0a0a0a, #141414);
+    border-radius: 3px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.03);
+    position: relative;
+    cursor: pointer;
+    min-width: 60px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--term-green-dim), var(--term-green));
+    box-shadow: 0 0 6px var(--term-green-glow);
+    transition: width 0.2s ease;
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #eee, #aaa);
+    box-shadow: 0 0 4px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.3);
+  }
+
+  .progress-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--term-muted);
+    white-space: nowrap;
+    min-width: 56px;
+    text-align: right;
+    letter-spacing: 0.5px;
+  }
+
+  .playback-badge {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--term-amber);
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(255,183,0,0.08);
+    border: 1px solid rgba(255,183,0,0.15);
+    animation: badge-pulse 1.5s ease-in-out infinite;
+  }
+
+  .playback-badge.show { display: flex; }
+
+  @keyframes badge-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 18px;
+    font-size: 10.5px;
+    color: var(--term-muted);
+    background: var(--term-surface);
+    border-top: 1px solid var(--term-border);
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+
+  .boot-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--term-bg);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease;
+  }
+
+  .boot-overlay.done { opacity: 0; pointer-events: none; }
+
+  .boot-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--term-green);
+    text-shadow: 0 0 8px var(--term-green-glow);
+    text-align: left;
+    width: 340px;
+    line-height: 1.8;
+  }
+
+  .autocomplete-hint {
+    position: absolute;
+    bottom: 120px;
+    left: 18px;
+    background: var(--term-surface);
+    border: 1px solid var(--term-border);
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--term-muted);
+    border-radius: 4px;
+    display: none;
+    z-index: 5;
+  }
+
+  .autocomplete-hint.show { display: block; }
+  .autocomplete-hint span { color: var(--term-cyan); margin-right: 10px; }
+
+  @media (max-width: 600px) {
+    body { padding: 0; }
+    .crt-wrapper { max-height: 100vh; height: 100vh; border-radius: 0; }
+    .output-area { font-size: 12.5px; padding: 12px; }
+    .input-field { font-size: 13px; }
+    .title-bar-text { display: none; }
+    .playback-surface { padding: 8px 10px; gap: 6px; }
+    .transport-btn { width: 32px; height: 28px; }
+    .progress-label { font-size: 10px; min-width: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="crt-wrapper">
+  <div class="boot-overlay" id="bootOverlay">
+    <div class="boot-text" id="bootText"></div>
+  </div>
+
+  <div class="terminal">
+    <div class="title-bar">
+      <div class="title-bar-dots">
+        <span class="dot-red"></span>
+        <span class="dot-yellow"></span>
+        <span class="dot-green"></span>
+      </div>
+      <div class="title-bar-text">NEXTERM v3.2</div>
+      <div class="title-bar-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusMode">ACTIVE</span>
+      </div>
+    </div>
+
+    <div class="output-area" id="output"></div>
+    <div class="autocomplete-hint" id="autocomplete"></div>
+
+    <div class="input-area">
+      <span class="input-prompt" id="promptLabel">guest@nexterm:~$</span>
+      <input class="input-field" id="cmdInput" type="text" placeholder="type 'help' to get started..." autocomplete="off" spellcheck="false" autofocus />
+    </div>
+
+    <div class="playback-surface">
+      <div class="transport-controls">
+        <button class="transport-btn" id="btnRewind" title="Rewind to start">
+          <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+        </button>
+        <button class="transport-btn" id="btnBack" title="Step back">
+          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
+        </button>
+
+        <div class="transport-divider"></div>
+
+        <button class="transport-btn" id="btnPlay" title="Play">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5z"/></svg>
+        </button>
+        <button class="transport-btn" id="btnPause" title="Pause">
+          <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <div class="transport-divider"></div>
+
+        <button class="transport-btn" id="btnAhead" title="Step ahead">
+          <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg>
+        </button>
+        <button class="transport-btn" id="btnFastFwd" title="Fast forward to end">
+          <svg viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12l8.5 6L13 18V6z"/></svg>
+        </button>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-track" id="progressTrack">
+          <div class="progress-fill" id="progressFill" style="width: 100%"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">0 / 0</div>
+      </div>
+
+      <div class="playback-badge" id="playbackBadge">
+        <span>▶</span> PLAYBACK
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span id="statusLeft">READY</span>
+      <span id="statusRight"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const output      = document.getElementById('output');
+  const cmdInput    = document.getElementById('cmdInput');
+  const statusL     = document.getElementById('statusLeft');
+  const statusR     = document.getElementById('statusRight');
+  const acHint      = document.getElementById('autocomplete');
+  const bootOvl     = document.getElementById('bootOverlay');
+  const bootTxt     = document.getElementById('bootText');
+  const promptLbl   = document.getElementById('promptLabel');
+  const statusDot   = document.getElementById('statusDot');
+  const statusMode  = document.getElementById('statusMode');
+  const progressFill  = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const progressTrack = document.getElementById('progressTrack');
+  const playbackBadge = document.getElementById('playbackBadge');
+
+  const btnRewind   = document.getElementById('btnRewind');
+  const btnBack     = document.getElementById('btnBack');
+  const btnPlay     = document.getElementById('btnPlay');
+  const btnPause    = document.getElementById('btnPause');
+  const btnAhead    = document.getElementById('btnAhead');
+  const btnFastFwd  = document.getElementById('btnFastFwd');
+
+  let history = [];
+  let historyIdx = -1;
+  let currentUser = 'guest';
+  let cwd = '~';
+  let commandCount = 0;
+  let sessionStart = Date.now();
+
+  // ── DVR ───────────────────────────────────────
+  let snapshots = [];
+  let snapshotIdx = -1;
+  let isPlaying = false;
+  let playTimer = null;
+  const PLAY_INTERVAL = 1200;
+
+  function takeSnapshot() {
+    snapshots.push({ html: output.innerHTML });
+    if (snapshotIdx === -1) updateProgress();
+  }
+
+  function goToSnapshot(idx) {
+    if (snapshots.length === 0) return;
+    idx = Math.max(0, Math.min(idx, snapshots.length - 1));
+    snapshotIdx = idx;
+    output.innerHTML = snapshots[idx].html;
+    output.scrollTop = output.scrollHeight;
+    updateProgress();
+    updatePlaybackUI();
+  }
+
+  function goLive() {
+    if (snapshots.length === 0) return;
+    snapshotIdx = -1;
+    output.innerHTML = snapshots[snapshots.length - 1].html;
+    output.scrollTop = output.scrollHeight;
+    stopPlayback();
+    updateProgress();
+    updatePlaybackUI();
+  }
+
+  function updateProgress() {
+    const total = snapshots.length;
+    const current = snapshotIdx === -1 ? total : snapshotIdx + 1;
+    const pct = total === 0 ? 100 : (current / total) * 100;
+    progressFill.style.width = pct + '%';
+    progressLabel.textContent = current + ' / ' + total;
+  }
+
+  function updatePlaybackUI() {
+    const inPlayback = snapshotIdx !== -1;
+    playbackBadge.classList.toggle('show', inPlayback || isPlaying);
+    statusDot.classList.toggle('playback', inPlayback);
+    statusMode.textContent = isPlaying ? 'PLAYING' : inPlayback ? 'PLAYBACK' : 'ACTIVE';
+    cmdInput.disabled = inPlayback;
+    cmdInput.placeholder = inPlayback ? '── playback mode ── press ⏩ to return to live' : "type 'help' to get started...";
+    btnPlay.classList.toggle('active', isPlaying);
+    btnPlay.classList.toggle('is-play', isPlaying);
+    btnPause.classList.toggle('active', inPlayback && !isPlaying);
+  }
+
+  function startPlayback() {
+    if (snapshots.length === 0) return;
+    if (snapshotIdx === -1) snapshotIdx = 0;
+    isPlaying = true;
+    updatePlaybackUI();
+    playTimer = setInterval(() => {
+      if (snapshotIdx >= snapshots.length - 1) { stopPlayback(); return; }
+      snapshotIdx++;
+      goToSnapshot(snapshotIdx);
+    }, PLAY_INTERVAL);
+  }
+
+  function stopPlayback() {
+    isPlaying = false;
+    if (playTimer) { clearInterval(playTimer); playTimer = null; }
+    updatePlaybackUI();
+  }
+
+  btnRewind.addEventListener('click', () => { stopPlayback(); goToSnapshot(0); });
+  btnBack.addEventListener('click', () => {
+    stopPlayback();
+    const idx = snapshotIdx === -1 ? snapshots.length - 2 : snapshotIdx - 1;
+    goToSnapshot(Math.max(0, idx));
+  });
+  btnPlay.addEventListener('click', () => { if (isPlaying) stopPlayback(); else startPlayback(); });
+  btnPause.addEventListener('click', () => { if (isPlaying) stopPlayback(); });
+  btnAhead.addEventListener('click', () => {
+    stopPlayback();
+    if (snapshotIdx === -1) return;
+    if (snapshotIdx >= snapshots.length - 1) { goLive(); return; }
+    goToSnapshot(snapshotIdx + 1);
+  });
+  btnFastFwd.addEventListener('click', () => { stopPlayback(); goLive(); });
+
+  progressTrack.addEventListener('click', (e) => {
+    if (snapshots.length === 0) return;
+    stopPlayback();
+    const rect = progressTrack.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    goToSnapshot(Math.round(pct * (snapshots.length - 1)));
+  });
+
+  // ── Filesystem ────────────────────────────────
+  const FS = {
+    '~': {
+      type: 'dir',
+      children: {
+        'readme.txt': { type: 'file', content: 'Welcome to NEXTERM v3.2\nA web-based terminal emulator.\nType "help" for available commands.' },
+        'notes.txt': { type: 'file', content: 'TODO:\n- Finish the project\n- Deploy to production\n- Celebrate' },
+        'projects': {
+          type: 'dir',
+          children: {
+            'alpha.log': { type: 'file', content: '[LOG] Project Alpha initialized.\n[LOG] Build successful.\n[LOG] Tests passed: 42/42' },
+            'beta.conf': { type: 'file', content: 'name=beta\nversion=2.1\nstatus=active\nport=8080' },
+          }
+        },
+        'secret': {
+          type: 'dir',
+          children: {
+            '.hidden': { type: 'file', content: 'You found the hidden file! Nice exploration skills.' }
+          }
+        }
+      }
+    }
+  };
+
+  function resolvePath(pathStr) {
+    let parts;
+    if (pathStr.startsWith('~') || pathStr.startsWith('/')) {
+      parts = pathStr.replace(/^~\/?/, '').split('/').filter(Boolean);
+    } else {
+      const cwdParts = cwd.replace(/^~\/?/, '').split('/').filter(Boolean);
+      parts = [...cwdParts, ...pathStr.split('/').filter(Boolean)];
+    }
+    const resolved = [];
+    for (const p of parts) {
+      if (p === '..') resolved.pop();
+      else if (p !== '.') resolved.push(p);
+    }
+    return resolved;
+  }
+
+  function getNode(pathParts) {
+    let node = FS['~'];
+    for (const part of pathParts) {
+      if (!node || node.type !== 'dir' || !node.children[part]) return null;
+      node = node.children[part];
+    }
+    return node;
+  }
+
+  function getAbsPath(parts) {
+    return parts.length ? '~/' + parts.join('/') : '~';
+  }
+
+  // ── Rendering ─────────────────────────────────
+  function print(html, className) {
+    const div = document.createElement('div');
+    div.className = ('line ' + (className || '')).trim();
+    div.innerHTML = html;
+    output.appendChild(div);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function printPromptEcho(cmd) {
+    print(
+      '<span class="prompt-user">' + currentUser + '@nexterm</span><span class="prompt-separator">:</span><span class="prompt-user">' + cwd + '$</span> <span class="prompt-cmd">' + escapeHtml(cmd) + '</span>',
+      'line-prompt-echo'
+    );
+  }
+
+  function printTable(headers, rows) {
+    var html = '<table class="output-table"><thead><tr>';
+    headers.forEach(function(h) { html += '<th>' + escapeHtml(h) + '</th>'; });
+    html += '</tr></thead><tbody>';
+    rows.forEach(function(row) { html += '<tr>'; row.forEach(function(cell) { html += '<td>' + cell + '</td>'; }); html += '</tr>'; });
+    html += '</tbody></table>';
+    print(html);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function updatePrompt() {
+    promptLbl.textContent = currentUser + '@nexterm:' + cwd + '$';
+  }
+
+  function updateStatus() {
+    var elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+    var mins = Math.floor(elapsed / 60);
+    var secs = elapsed % 60;
+    statusL.textContent = 'CMD: ' + commandCount;
+    statusR.textContent = 'SESSION ' + String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0') + ' | UTF-8';
+  }
+  setInterval(updateStatus, 1000);
+
+  // ── Commands ──────────────────────────────────
+  var COMMANDS = {};
+  function register(name, desc, usage, fn) { COMMANDS[name] = { description: desc, usage: usage, fn: fn }; }
+
+  register('help', 'Show available commands', 'help [command]', function(args) {
+    if (args.length) {
+      var cmd = COMMANDS[args[0]];
+      if (!cmd) return print('help: unknown command \'' + escapeHtml(args[0]) + '\'', 'line-error');
+      print('<strong style="color:var(--term-cyan)">' + escapeHtml(args[0]) + '</strong> — ' + escapeHtml(cmd.description), 'line-info');
+      print('  Usage: ' + escapeHtml(cmd.usage), 'line-system');
+      return;
+    }
+    print('╔══════════════════════════════════════════════╗', 'line-info');
+    print('║         NEXTERM — COMMAND REFERENCE          ║', 'line-info');
+    print('╚══════════════════════════════════════════════╝', 'line-info');
+    print('');
+    var sorted = Object.keys(COMMANDS).sort();
+    var maxLen = Math.max.apply(null, sorted.map(function(n) { return n.length; }));
+    sorted.forEach(function(name) {
+      var pad = ' '.repeat(maxLen - name.length + 2);
+      print('  <span style="color:var(--term-cyan)">' + name + '</span>' + pad + escapeHtml(COMMANDS[name].description));
+    });
+    print('');
+    print('Tip: use <span style="color:var(--term-amber)">help &lt;command&gt;</span> for detailed usage.', 'line-system');
+  });
+
+  register('clear', 'Clear the terminal screen', 'clear', function() { output.innerHTML = ''; });
+  register('echo', 'Print text to the terminal', 'echo <text>', function(args) { print(escapeHtml(args.join(' '))); });
+  register('date', 'Show current date and time', 'date', function() { print(new Date().toString(), 'line-info'); });
+  register('whoami', 'Display the current user', 'whoami', function() { print(currentUser, 'line-success'); });
+
+  register('user', 'Change the active username', 'user <name>', function(args) {
+    if (!args.length) return print('Usage: user &lt;name&gt;', 'line-warn');
+    var name = args[0].replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 16);
+    if (!name) return print('Invalid username.', 'line-error');
+    currentUser = name; updatePrompt();
+    print('User changed to <span style="color:var(--term-green)">' + escapeHtml(name) + '</span>', 'line-success');
+  });
+
+  register('uptime', 'Show session uptime', 'uptime', function() {
+    var s = Math.floor((Date.now() - sessionStart) / 1000);
+    print('Session uptime: ' + Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm ' + (s%60) + 's', 'line-info');
+  });
+
+  register('ls', 'List directory contents', 'ls [path]', function(args) {
+    var target = args[0] || cwd;
+    var parts = resolvePath(target);
+    var node = getNode(parts);
+    if (!node) return print('ls: cannot access \'' + escapeHtml(target) + '\': No such file or directory', 'line-error');
+    if (node.type !== 'dir') return print(escapeHtml(target), 'line-info');
+    var names = Object.keys(node.children).sort();
+    if (!names.length) return print('(empty directory)', 'line-system');
+    var items = names.map(function(n) {
+      var child = node.children[n];
+      return child.type === 'dir'
+        ? '<span style="color:var(--term-cyan);font-weight:600">' + escapeHtml(n) + '/</span>'
+        : '<span style="color:var(--term-text)">' + escapeHtml(n) + '</span>';
+    });
+    print(items.join('    '));
+  });
+
+  register('cd', 'Change directory', 'cd <path>', function(args) {
+    if (!args.length || args[0] === '~') { cwd = '~'; updatePrompt(); return; }
+    var parts = resolvePath(args[0]);
+    var node = getNode(parts);
+    if (!node) return print('cd: no such directory: ' + escapeHtml(args[0]), 'line-error');
+    if (node.type !== 'dir') return print('cd: not a directory: ' + escapeHtml(args[0]), 'line-error');
+    cwd = getAbsPath(parts); updatePrompt();
+  });
+
+  register('pwd', 'Print working directory', 'pwd', function() {
+    print('/home/' + currentUser + (cwd === '~' ? '' : cwd.slice(1)), 'line-info');
+  });
+
+  register('cat', 'Display file contents', 'cat <file>', function(args) {
+    if (!args.length) return print('Usage: cat &lt;file&gt;', 'line-warn');
+    var parts = resolvePath(args[0]);
+    var node = getNode(parts);
+    if (!node) return print('cat: ' + escapeHtml(args[0]) + ': No such file or directory', 'line-error');
+    if (node.type === 'dir') return print('cat: ' + escapeHtml(args[0]) + ': Is a directory', 'line-error');
+    print(escapeHtml(node.content));
+  });
+
+  register('mkdir', 'Create a directory', 'mkdir <name>', function(args) {
+    if (!args.length) return print('Usage: mkdir &lt;name&gt;', 'line-warn');
+    var cwdParts = resolvePath('.');
+    var parent = getNode(cwdParts);
+    if (!parent || parent.type !== 'dir') return print('mkdir: cannot create directory', 'line-error');
+    var name = args[0].replace(/\//g, '');
+    if (parent.children[name]) return print('mkdir: \'' + escapeHtml(name) + '\' already exists', 'line-error');
+    parent.children[name] = { type: 'dir', children: {} };
+    print('Directory created: ' + escapeHtml(name) + '/', 'line-success');
+  });
+
+  register('touch', 'Create an empty file', 'touch <name>', function(args) {
+    if (!args.length) return print('Usage: touch &lt;name&gt;', 'line-warn');
+    var cwdParts = resolvePath('.');
+    var parent = getNode(cwdParts);
+    if (!parent || parent.type !== 'dir') return print('touch: cannot create file', 'line-error');
+    var name = args[0].replace(/\//g, '');
+    if (parent.children[name]) return print('touch: \'' + escapeHtml(name) + '\' already exists', 'line-warn');
+    parent.children[name] = { type: 'file', content: '' };
+    print('File created: ' + escapeHtml(name), 'line-success');
+  });
+
+  register('write', 'Write content to a file', 'write <file> <content>', function(args) {
+    if (args.length < 2) return print('Usage: write &lt;file&gt; &lt;content&gt;', 'line-warn');
+    var parts = resolvePath(args[0]);
+    var node = getNode(parts);
+    if (!node) return print('write: ' + escapeHtml(args[0]) + ': No such file', 'line-error');
+    if (node.type === 'dir') return print('write: ' + escapeHtml(args[0]) + ': Is a directory', 'line-error');
+    node.content = args.slice(1).join(' ');
+    print('Written to ' + escapeHtml(args[0]), 'line-success');
+  });
+
+  register('rm', 'Remove a file', 'rm <file>', function(args) {
+    if (!args.length) return print('Usage: rm &lt;file&gt;', 'line-warn');
+    var pathParts = resolvePath(args[0]);
+    if (pathParts.length === 0) return print('rm: cannot remove root', 'line-error');
+    var parentParts = pathParts.slice(0, -1);
+    var parent = getNode(parentParts);
+    var name = pathParts[pathParts.length - 1];
+    if (!parent || !parent.children[name]) return print('rm: \'' + escapeHtml(args[0]) + '\': not found', 'line-error');
+    delete parent.children[name];
+    print('Removed: ' + escapeHtml(args[0]), 'line-success');
+  });
+
+  register('tree', 'Show directory tree', 'tree [path]', function(args) {
+    var target = args[0] || cwd;
+    var parts = resolvePath(target);
+    var node = getNode(parts);
+    if (!node || node.type !== 'dir') return print('tree: \'' + escapeHtml(target) + '\' is not a directory', 'line-error');
+    function walk(n, prefix) {
+      var keys = Object.keys(n.children).sort();
+      keys.forEach(function(k, i) {
+        var last = i === keys.length - 1;
+        var child = n.children[k];
+        var label = child.type === 'dir'
+          ? '<span style="color:var(--term-cyan)">' + escapeHtml(k) + '/</span>' : escapeHtml(k);
+        print(prefix + (last ? '└── ' : '├── ') + label);
+        if (child.type === 'dir') walk(child, prefix + (last ? '    ' : '│   '));
+      });
+    }
+    print('<span style="color:var(--term-cyan)">' + escapeHtml(getAbsPath(parts)) + '</span>');
+    walk(node, '');
+  });
+
+  register('calc', 'Evaluate a math expression', 'calc <expr>', function(args) {
+    if (!args.length) return print('Usage: calc &lt;expression&gt;', 'line-warn');
+    try {
+      var expr = args.join(' ').replace(/[^0-9+\-*/().%\s]/g, '');
+      var result = Function('"use strict"; return (' + expr + ')')();
+      print('= <span style="color:var(--term-green);font-weight:600">' + result + '</span>', 'line-success');
+    } catch(e) { print('calc: invalid expression', 'line-error'); }
+  });
+
+  register('weather', 'Mock weather report', 'weather [city]', function(args) {
+    var city = args.join(' ') || 'Terminal City';
+    var temp = [62,65,70,74,78,82,85,88][Math.floor(Math.random()*8)];
+    var conds = ['Clear','Partly Cloudy','Rain','Mostly Sunny'];
+    var cond = conds[Math.floor(Math.random()*4)];
+    print('┌─────────────────────────────────┐');
+    print('│  Weather: <span style="color:var(--term-amber)">' + escapeHtml(city) + '</span>');
+    print('│  Temp: <span style="color:var(--term-green)">' + temp + ' F</span>  |  Cond: ' + cond);
+    print('│  Wind: ' + (Math.floor(Math.random()*20)+3) + ' mph  |  Humid: ' + (Math.floor(Math.random()*60)+30) + '%');
+    print('└─────────────────────────────────┘');
+  });
+
+  register('colors', 'Show color palette', 'colors', function() {
+    print('<span style="color:var(--term-green)">##</span> Green  <span style="color:var(--term-cyan)">##</span> Cyan  <span style="color:var(--term-amber)">##</span> Amber  <span style="color:var(--term-red)">##</span> Red  <span style="color:var(--term-magenta)">##</span> Magenta');
+  });
+
+  register('joke', 'Tell a programming joke', 'joke', function() {
+    var jokes = [
+      'Why do programmers prefer dark mode?\nBecause light attracts bugs.',
+      'A SQL query walks into a bar, sees two tables and asks...\n"Can I JOIN you?"',
+      '!false -- It is funny because it is true.',
+    ];
+    print(jokes[Math.floor(Math.random() * jokes.length)], 'line-info');
+  });
+
+  register('fortune', 'Random fortune', 'fortune', function() {
+    var f = [
+      'The best time to plant a tree was 20 years ago. The second best time is now.',
+      'Simplicity is the ultimate sophistication.',
+      'In the middle of difficulty lies opportunity.',
+    ];
+    print('> ' + f[Math.floor(Math.random() * f.length)], 'line-accent');
+  });
+
+  register('sysinfo', 'Display system information', 'sysinfo', function() {
+    printTable(['Property', 'Value'], [
+      ['OS', '<span style="color:var(--term-cyan)">NEXTERM/Web 3.2</span>'],
+      ['Shell', '<span style="color:var(--term-text)">nxsh 3.2.0</span>'],
+      ['User', '<span style="color:var(--term-green)">' + escapeHtml(currentUser) + '</span>'],
+      ['Resolution', '<span style="color:var(--term-text)">' + window.innerWidth + 'x' + window.innerHeight + '</span>'],
+      ['Commands', '<span style="color:var(--term-amber)">' + Object.keys(COMMANDS).length + ' loaded</span>'],
+      ['Snapshots', '<span style="color:var(--term-amber)">' + snapshots.length + ' recorded</span>'],
+    ]);
+  });
+
+  register('history', 'Show command history', 'history', function() {
+    if (!history.length) return print('No commands in history.', 'line-system');
+    history.forEach(function(cmd, i) {
+      print('  <span style="color:var(--term-muted)">' + String(i+1).padStart(4) + '</span>  ' + escapeHtml(cmd));
+    });
+  });
+
+  register('theme', 'Switch color theme', 'theme <green|amber|cyan|red>', function(args) {
+    var themes = {
+      green: { main: '#39ff14', glow: 'rgba(57,255,20,0.35)' },
+      amber: { main: '#ffb700', glow: 'rgba(255,183,0,0.35)' },
+      cyan:  { main: '#00e5ff', glow: 'rgba(0,229,255,0.35)' },
+      red:   { main: '#ff3333', glow: 'rgba(255,51,51,0.35)' },
+    };
+    var t = themes[args[0]];
+    if (!t) return print('Available themes: ' + Object.keys(themes).join(', '), 'line-warn');
+    document.documentElement.style.setProperty('--term-green', t.main);
+    document.documentElement.style.setProperty('--term-green-glow', t.glow);
+    print('Theme changed to <span style="color:' + t.main + '">' + args[0] + '</span>', 'line-success');
+  });
+
+  register('banner', 'Display the NEXTERM banner', 'banner', function() {
+    var art = '\n ███╗   ██╗███████╗██╗  ██╗████████╗███████╗██████╗ ███╗   ███╗\n ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔══██╗████╗ ████║\n ██╔██╗ ██║█████╗   ╚███╔╝    ██║   █████╗  ██████╔╝██╔████╔██║\n ██║╚██╗██║██╔══╝   ██╔██╗    ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║\n ██║ ╚████║███████╗██╔╝ ██╗   ██║   ███████╗██║  ██║██║ ╚═╝ ██║\n ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝';
+    print('<span class="ascii-art">' + art + '</span>');
+    print('');
+    print('  <span style="color:var(--term-muted)">Web Terminal Emulator v3.2 | Type <span style="color:var(--term-amber)">help</span> to begin</span>');
+  });
+
+  register('export', 'Export terminal output', 'export', function() {
+    var text = output.innerText;
+    var blob = new Blob([text], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'nexterm-session.txt'; a.click();
+    print('Session exported.', 'line-success');
+  });
+
+  // ── Execution ─────────────────────────────────
+  function execute(input, skipSnapshot) {
+    var trimmed = input.trim();
+    if (!trimmed) return;
+
+    if (snapshotIdx !== -1) goLive();
+
+    history.push(trimmed);
+    historyIdx = history.length;
+    commandCount++;
+
+    printPromptEcho(trimmed);
+
+    var parts = trimmed.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+    var cmd = parts[0].toLowerCase();
+    var args = parts.slice(1).map(function(a) { return a.replace(/^"|"$/g, ''); });
+
+    if (COMMANDS[cmd]) {
+      COMMANDS[cmd].fn(args);
+    } else {
+      print('nexterm: command not found: <span style="color:var(--term-red)">' + escapeHtml(cmd) + '</span>', 'line-error');
+      var suggestions = Object.keys(COMMANDS).filter(function(c) { return c.startsWith(cmd.slice(0, 2)); });
+      if (suggestions.length) {
+        print('Did you mean: ' + suggestions.map(function(s) { return '<span style="color:var(--term-cyan)">' + s + '</span>'; }).join(', ') + '?', 'line-system');
+      }
+    }
+
+    if (!skipSnapshot) takeSnapshot();
+  }
+
+  // ── Autocomplete ──────────────────────────────
+  function showAutocomplete(partial) {
+    if (!partial) { acHint.classList.remove('show'); return; }
+    var matches = Object.keys(COMMANDS).filter(function(c) { return c.startsWith(partial.toLowerCase()); });
+    if (matches.length && matches.length <= 8 && partial.length > 0) {
+      acHint.innerHTML = matches.map(function(m) { return '<span>' + m + '</span>'; }).join('');
+      acHint.classList.add('show');
+    } else { acHint.classList.remove('show'); }
+  }
+
+  // ── Input ─────────────────────────────────────
+  cmdInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      acHint.classList.remove('show');
+      execute(cmdInput.value);
+      cmdInput.value = '';
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyIdx > 0) { historyIdx--; cmdInput.value = history[historyIdx]; }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIdx < history.length - 1) { historyIdx++; cmdInput.value = history[historyIdx]; }
+      else { historyIdx = history.length; cmdInput.value = ''; }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      var partial = cmdInput.value.trim().toLowerCase();
+      var matches = Object.keys(COMMANDS).filter(function(c) { return c.startsWith(partial); });
+      if (matches.length === 1) { cmdInput.value = matches[0] + ' '; acHint.classList.remove('show'); }
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      output.innerHTML = '';
+    }
+  });
+
+  cmdInput.addEventListener('input', function() {
+    showAutocomplete(cmdInput.value.split(' ')[0]);
+  });
+
+  document.querySelector('.terminal').addEventListener('click', function(e) {
+    if (!e.target.closest('.playback-surface')) cmdInput.focus();
+  });
+
+  // ── Keyboard shortcuts for transport ──────────
+  document.addEventListener('keydown', function(e) {
+    if (document.activeElement === cmdInput && snapshotIdx === -1) return;
+    if (e.key === 'Home') { e.preventDefault(); stopPlayback(); goToSnapshot(0); }
+    if (e.key === 'End') { e.preventDefault(); goLive(); }
+    if (e.key === 'ArrowLeft' && document.activeElement !== cmdInput) {
+      e.preventDefault(); stopPlayback();
+      var idx = snapshotIdx === -1 ? snapshots.length - 2 : snapshotIdx - 1;
+      goToSnapshot(Math.max(0, idx));
+    }
+    if (e.key === 'ArrowRight' && document.activeElement !== cmdInput) {
+      e.preventDefault(); stopPlayback();
+      if (snapshotIdx === -1) return;
+      if (snapshotIdx >= snapshots.length - 1) goLive();
+      else goToSnapshot(snapshotIdx + 1);
+    }
+    if (e.key === ' ' && snapshotIdx !== -1) {
+      e.preventDefault();
+      isPlaying ? stopPlayback() : startPlayback();
+    }
+  });
+
+  // ── Boot ──────────────────────────────────────
+  async function boot() {
+    var lines = [
+      'BIOS POST... OK',
+      'Detecting hardware... CPU: WebCore vHost',
+      'Memory test: 512 MB ... PASS',
+      'Loading kernel modules...',
+      'Mounting filesystem... /dev/vfs0',
+      'Initializing NEXTERM shell v3.2...',
+      'Starting DVR subsystem... OK',
+      '',
+      'SYSTEM READY',
+    ];
+
+    for (var i = 0; i < lines.length; i++) {
+      await new Promise(function(r) { setTimeout(r, 120 + Math.random() * 80); });
+      bootTxt.innerHTML += lines[i] + '\n';
+    }
+
+    await new Promise(function(r) { setTimeout(r, 400); });
+    bootOvl.classList.add('done');
+    await new Promise(function(r) { setTimeout(r, 500); });
+    bootOvl.remove();
+
+    execute('banner', true);
+    print('');
+    print('Welcome to <span style="color:var(--term-green)">NEXTERM</span> — your browser-based terminal.', 'line-system');
+    print('Type <span style="color:var(--term-amber)">help</span> to see all commands. Use the transport bar to replay your session.', 'line-system');
+    print('');
+
+    takeSnapshot();
+    updatePlaybackUI();
+    cmdInput.focus();
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
