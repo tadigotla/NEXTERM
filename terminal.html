@@ -8,14 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
 
   :root {
-    --term-green: #7ed957;
-    --term-green-dim: #1a7a0a;
-    --term-green-glow: rgba(126, 217, 87, 0.20);
-    --term-amber: #e8a93b;
-    --term-red: #e06b6b;
-    --term-cyan: #5cc4d6;
-    --term-magenta: #c97bb8;
-    --flicker-min: 0.985;
+    /* Chassis */
     --term-bg: #0a0a0a;
     --term-bg-light: #111111;
     --term-surface: #1a1a1a;
@@ -23,6 +16,28 @@
     --term-text: #d4d4d4;
     --term-muted: #666;
     --scanline-opacity: 0.04;
+    --flicker-min: 0.985;
+    --output-font-size: 13.5px;
+
+    /* Themes */
+    --term-green: #7ed957;
+    --term-green-dim: #1a7a0a;
+    --term-green-glow: rgba(126, 217, 87, 0.20);
+    --term-amber: #e8a93b;
+    --term-red: #e06b6b;
+    --term-cyan: #5cc4d6;
+    --term-magenta: #c97bb8;
+  }
+
+  :root[data-mode="light"] {
+    --term-bg: #f4f1ea;
+    --term-bg-light: #ffffff;
+    --term-surface: #e8e4dc;
+    --term-border: #c9c4ba;
+    --term-text: #2a2a2a;
+    --term-muted: #888;
+    --scanline-opacity: 0.02;
+    --flicker-min: 0.995;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,11 +106,57 @@
     user-select: none;
   }
 
+  .title-bar-left { display: flex; align-items: center; gap: 14px; }
   .title-bar-dots { display: flex; gap: 7px; }
   .title-bar-dots span { width: 12px; height: 12px; border-radius: 50%; display: block; }
   .dot-red { background: #ff5f57; }
   .dot-yellow { background: #ffbd2e; }
   .dot-green { background: #28c840; }
+
+  .mode-toggle {
+    position: relative;
+    width: 44px;
+    height: 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 2px),
+      linear-gradient(180deg, #3a3a3a 0%, #1f1f1f 50%, #2c2c2c 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(0,0,0,0.6),
+      inset 0 -1px 1px rgba(255,255,255,0.06),
+      0 1px 0 rgba(255,255,255,0.05);
+    flex-shrink: 0;
+  }
+
+  .mode-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #555 0%, #2a2a2a 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15);
+    transition: transform 0.2s ease;
+    z-index: 1;
+  }
+
+  .mode-toggle-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 9px;
+    color: #888;
+    pointer-events: none;
+    line-height: 1;
+  }
+  .mode-toggle-icon-dark  { left: 5px; }
+  .mode-toggle-icon-light { right: 5px; }
+
+  :root[data-mode="light"] .mode-toggle-thumb { transform: translateX(24px); }
 
   .title-bar-text {
     font-family: 'Share Tech Mono', monospace;
@@ -131,7 +192,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 16px 18px;
-    font-size: 13.5px;
+    font-size: var(--output-font-size);
     line-height: 1.7;
     scroll-behavior: smooth;
   }
@@ -194,7 +255,7 @@
     caret-color: var(--term-green);
     letter-spacing: 0.3px;
   }
-  .input-field::placeholder { color: #333; }
+  .input-field::placeholder { color: var(--term-muted); opacity: 0.6; }
   .input-field:disabled { opacity: 0.3; cursor: not-allowed; }
 
   /* ── Playback Control Surface ─────────────────── */
@@ -244,9 +305,9 @@
   }
 
   .playback-right {
-    flex: 0 0 33%;
-    min-width: 180px;
-    max-width: 360px;
+    flex: 0 0 38%;
+    min-width: 220px;
+    max-width: 440px;
     position: relative;
     z-index: 1;
     margin: 2px 0;
@@ -264,7 +325,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 6px;
     padding: 8px 12px;
     height: 100%;
     width: 100%;
@@ -273,14 +333,23 @@
   .stardate-header {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 18px;
     flex: 1 1 auto;
     min-height: 0;
   }
 
-  .stardate-clock-block,
+  .stardate-clock-block {
+    flex: 1.4 1 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+  }
+
   .stardate-date-block {
     flex: 1 1 0;
     display: flex;
@@ -295,26 +364,18 @@
     width: 1px;
     align-self: stretch;
     background: rgba(255,255,255,0.08);
-    margin: 4px 0;
-  }
-
-  .stardate-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--term-muted);
-    text-transform: uppercase;
-    margin-bottom: 2px;
+    margin: 6px 0;
   }
 
   .stardate-clock {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 22px;
+    font-size: 28px;
     letter-spacing: 2px;
     color: var(--term-green);
     text-shadow: 0 0 6px var(--term-green-glow);
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .stardate-clock-colon {
@@ -327,44 +388,93 @@
     51%, 100% { opacity: 0.3; }
   }
 
-  .stardate-dow,
-  .stardate-date {
+  .stardate-dow {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
+    font-size: 11px;
+    letter-spacing: 3px;
     color: var(--term-muted);
     text-transform: uppercase;
-    line-height: 1.3;
-  }
-
-  .stardate-ambient {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: #888;
-    transition: opacity 0.4s ease;
-    min-height: 1.2em;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.4;
     white-space: nowrap;
-    text-align: center;
   }
 
-  .stardate-ambient::before {
-    content: '●';
-    color: var(--term-green);
-    margin-right: 6px;
-    display: inline-block;
-    animation: led-pulse 2s ease-in-out infinite;
+  .stardate-date {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: var(--term-text);
+    opacity: 0.65;
+    text-transform: uppercase;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    margin-top: 1px;
   }
 
-  @keyframes led-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+  .font-knob-mount {
+    flex: 0 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
   }
 
-  .stardate-ambient.fading { opacity: 0; }
+  .font-knob-slot {
+    width: 14px;
+    height: 32px;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg,
+      #050505 0%,
+      #1a1a1a 12%,
+      #4a4a4a 50%,
+      #1a1a1a 88%,
+      #050505 100%);
+    box-shadow:
+      inset 0 2px 3px rgba(0,0,0,0.85),
+      inset 0 -1px 2px rgba(0,0,0,0.6),
+      inset 1px 0 1px rgba(0,0,0,0.5),
+      inset -1px 0 1px rgba(0,0,0,0.5),
+      0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .font-knob-wheel {
+    position: absolute;
+    inset: 0;
+    cursor: ns-resize;
+    user-select: none;
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.55) 0 1px,
+      rgba(255,255,255,0.12) 1px 2px,
+      transparent 2px 5px
+    );
+    background-size: 100% 200px;
+    background-repeat: repeat-y;
+    background-position: 0 0;
+  }
+
+  .font-knob-tooltip {
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--term-text);
+    background: rgba(20,20,20,0.85);
+    padding: 1px 5px;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .font-knob-mount.dragging .font-knob-tooltip { opacity: 1; }
 
   .transport-controls {
     display: flex;
@@ -597,6 +707,7 @@
     .playback-right { display: none; }
     .transport-btn { width: 32px; height: 28px; }
     .progress-label { font-size: 10px; min-width: 44px; }
+    .font-knob-mount { display: none; }
   }
 </style>
 </head>
@@ -609,10 +720,17 @@
 
   <div class="terminal">
     <div class="title-bar">
-      <div class="title-bar-dots">
-        <span class="dot-red"></span>
-        <span class="dot-yellow"></span>
-        <span class="dot-green"></span>
+      <div class="title-bar-left">
+        <div class="title-bar-dots">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <button class="mode-toggle" id="modeToggle" type="button" aria-label="Toggle light/dark mode">
+          <span class="mode-toggle-icon mode-toggle-icon-dark">☾</span>
+          <span class="mode-toggle-icon mode-toggle-icon-light">☀</span>
+          <span class="mode-toggle-thumb"></span>
+        </button>
       </div>
       <div class="title-bar-text">NEXTERM v3.2</div>
       <div class="title-bar-status">
@@ -665,6 +783,15 @@
           <button class="transport-btn is-record active" id="btnRecord" title="Recording (click to toggle)">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
           </button>
+
+          <div class="transport-divider"></div>
+
+          <div class="font-knob-mount">
+            <div class="font-knob-slot">
+              <div class="font-knob-wheel" id="fontKnob" title="Drag to resize terminal text"></div>
+            </div>
+            <div class="font-knob-tooltip" id="fontKnobTooltip">13px</div>
+          </div>
         </div>
 
         <div class="progress-section">
@@ -679,7 +806,6 @@
         <div class="stardate-panel" id="stardatePanel">
           <div class="stardate-header">
             <div class="stardate-clock-block">
-              <div class="stardate-label">LOCAL</div>
               <div class="stardate-clock" id="stardateClock">--:--:--</div>
             </div>
             <div class="stardate-divider"></div>
@@ -688,7 +814,6 @@
               <div class="stardate-date" id="stardateDate">-- --- ----</div>
             </div>
           </div>
-          <div class="stardate-ambient" id="stardateAmbient">&nbsp;</div>
         </div>
       </div>
 
@@ -1272,30 +1397,60 @@
     }
   });
 
+  // ── Device Controls ───────────────────────────
+  const modeToggle = document.getElementById('modeToggle');
+  modeToggle.addEventListener('click', function() {
+    var isLight = document.documentElement.dataset.mode === 'light';
+    document.documentElement.dataset.mode = isLight ? 'dark' : 'light';
+  });
+
+  const fontKnob = document.getElementById('fontKnob');
+  const fontKnobMount = fontKnob.closest('.font-knob-mount');
+  const fontKnobTooltip = document.getElementById('fontKnobTooltip');
+  const FONT_MIN = 11;
+  const FONT_MAX = 22;
+  const WHEEL_SCROLL_PER_PX = 12;
+  let currentFontSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--output-font-size')) || 13.5;
+  let dragStartY = 0;
+  let dragStartSize = 0;
+
+  function applyFontSize(size) {
+    currentFontSize = Math.max(FONT_MIN, Math.min(FONT_MAX, size));
+    document.documentElement.style.setProperty('--output-font-size', currentFontSize + 'px');
+    fontKnobTooltip.textContent = Math.round(currentFontSize) + 'px';
+    var offset = (currentFontSize - FONT_MIN) * WHEEL_SCROLL_PER_PX;
+    fontKnob.style.backgroundPositionY = '-' + offset + 'px';
+  }
+  applyFontSize(currentFontSize);
+
+  function onFontDragMove(e) {
+    var delta = dragStartY - e.clientY;
+    applyFontSize(dragStartSize + delta * 0.06);
+  }
+  function onFontDragEnd() {
+    window.removeEventListener('mousemove', onFontDragMove);
+    window.removeEventListener('mouseup', onFontDragEnd);
+    setTimeout(function() { fontKnobMount.classList.remove('dragging'); }, 600);
+  }
+  fontKnob.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    dragStartY = e.clientY;
+    dragStartSize = currentFontSize;
+    fontKnobMount.classList.add('dragging');
+    window.addEventListener('mousemove', onFontDragMove);
+    window.addEventListener('mouseup', onFontDragEnd);
+  });
+
   // ── Stardate Panel ────────────────────────────
-  const stardateClock   = document.getElementById('stardateClock');
-  const stardateDow     = document.getElementById('stardateDow');
-  const stardateDate    = document.getElementById('stardateDate');
-  const stardateAmbient = document.getElementById('stardateAmbient');
+  const stardateClock = document.getElementById('stardateClock');
+  const stardateDow   = document.getElementById('stardateDow');
+  const stardateDate  = document.getElementById('stardateDate');
   const DAY_NAMES   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
   const MONTH_NAMES = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
-  function formatUptime() {
-    var s = Math.floor((Date.now() - sessionStart) / 1000);
-    return 'UPTIME ' + pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60);
-  }
-  function randomFortune() { return '> ' + FORTUNES[Math.floor(Math.random() * FORTUNES.length)]; }
 
-  const ambientProducers = [
-    formatUptime,
-    function() { return 'CMDS ' + commandCount; },
-    function() { return 'THEME ' + activeThemeName; },
-    randomFortune,
-  ];
-  let ambientIdx = 0;
   let clockTimer = null;
-  let ambientTimer = null;
 
   function tickClock() {
     var d = new Date();
@@ -1309,28 +1464,15 @@
     stardateDate.textContent = pad2(d.getDate()) + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
   }
 
-  function rotateAmbient() {
-    stardateAmbient.classList.add('fading');
-    setTimeout(function() {
-      stardateAmbient.textContent = ambientProducers[ambientIdx]();
-      ambientIdx = (ambientIdx + 1) % ambientProducers.length;
-      stardateAmbient.classList.remove('fading');
-    }, 400);
-  }
-
   function startStardateTimers() {
     if (clockTimer === null) clockTimer = setInterval(tickClock, 1000);
-    if (ambientTimer === null) ambientTimer = setInterval(rotateAmbient, 10000);
   }
 
   function stopStardateTimers() {
     if (clockTimer !== null) { clearInterval(clockTimer); clockTimer = null; }
-    if (ambientTimer !== null) { clearInterval(ambientTimer); ambientTimer = null; }
   }
 
   tickClock();
-  stardateAmbient.textContent = ambientProducers[ambientIdx]();
-  ambientIdx = (ambientIdx + 1) % ambientProducers.length;
   startStardateTimers();
 
   document.addEventListener('visibilitychange', function() {
@@ -1369,7 +1511,6 @@
     execute('banner', true);
     print('');
     print('Welcome to <span style="color:var(--term-green)">NEXTERM</span> — your browser-based terminal.', 'line-system');
-    print('Type <span style="color:var(--term-amber)">help</span> to see all commands. Use the transport bar to replay your session — <span style="color:var(--term-amber)">STOP</span> returns to live and toggle <span style="color:var(--term-amber)">RECORD</span> to pause snapshot capture.', 'line-system');
     print('');
 
     takeSnapshot();
