@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'none'; base-uri 'self'; frame-ancestors 'none'">
-<title>NEXTERM // Web Terminal v3.2</title>
+<title>Reelshell — A browser terminal you can rewind</title>
 <style>
   :root {
     /* Chassis */
@@ -217,7 +217,7 @@
   .output-table th { color: var(--term-cyan); text-align: left; padding: 2px 16px 2px 0; border-bottom: 1px solid var(--term-border); font-weight: 600; }
   .output-table td { padding: 2px 16px 2px 0; color: var(--term-text); }
 
-  .nexterm-wordmark {
+  .reelshell-wordmark {
     color: var(--term-green);
     font-weight: 700;
     font-size: 20px;
@@ -731,7 +731,7 @@
           <span class="mode-toggle-thumb"></span>
         </button>
       </div>
-      <div class="title-bar-text">NEXTERM v3.2</div>
+      <div class="title-bar-text">REELSHELL v3.2</div>
       <div class="title-bar-status">
         <div class="status-dot" id="statusDot"></div>
         <span id="statusMode">ACTIVE</span>
@@ -742,7 +742,7 @@
     <div class="autocomplete-hint" id="autocomplete"></div>
 
     <div class="input-area">
-      <span class="input-prompt" id="promptLabel">guest@nexterm:~$</span>
+      <span class="input-prompt" id="promptLabel">guest@reelshell:~$</span>
       <input class="input-field" id="cmdInput" type="text" placeholder="type 'help' to get started..." autocomplete="off" spellcheck="false" autofocus />
     </div>
 
@@ -895,7 +895,7 @@
 
   function printPromptEcho(cmd) {
     print(
-      '<span class="prompt-user">' + NX.State.currentUser + '@nexterm</span><span class="prompt-separator">:</span><span class="prompt-user">' + NX.State.cwd + '$</span> <span class="prompt-cmd">' + escapeHtml(cmd) + '</span>',
+      '<span class="prompt-user">' + NX.State.currentUser + '@reelshell</span><span class="prompt-separator">:</span><span class="prompt-user">' + NX.State.cwd + '$</span> <span class="prompt-cmd">' + escapeHtml(cmd) + '</span>',
       'line-prompt-echo'
     );
   }
@@ -914,7 +914,7 @@
   }
 
   function updatePrompt() {
-    NX.DOM.promptLbl.textContent = NX.State.currentUser + '@nexterm:' + NX.State.cwd + '$';
+    NX.DOM.promptLbl.textContent = NX.State.currentUser + '@reelshell:' + NX.State.cwd + '$';
   }
 
   function updateStatus() {
@@ -998,7 +998,7 @@
     '~': {
       type: 'dir',
       children: {
-        'readme.txt': { type: 'file', content: 'Welcome to NEXTERM v3.2\nA web-based terminal emulator.\nType "help" for available commands.' },
+        'readme.txt': { type: 'file', content: 'Welcome to Reelshell v3.2\nA browser terminal you can rewind.\nType "help" for available commands.' },
         'notes.txt': { type: 'file', content: 'TODO:\n- Finish the project\n- Deploy to production\n- Celebrate' },
         'projects': {
           type: 'dir',
@@ -1066,8 +1066,8 @@
 /* ── persist.js ── */
 (function(NX) {
   var SCHEMA_VERSION = 1;
-  var PREFS_KEY = 'nexterm:prefs:v1';
-  var DB_NAME = 'nexterm';
+  var PREFS_KEY = 'reelshell:prefs:v1';
+  var DB_NAME = 'reelshell';
   var STORE = 'session';
   var RECORD_ID = 'current';
   var SAVE_DEBOUNCE_MS = 500;
@@ -1452,7 +1452,7 @@
       return;
     }
     NX.Output.print('╔══════════════════════════════════════════════╗', 'line-info');
-    NX.Output.print('║         NEXTERM — COMMAND REFERENCE          ║', 'line-info');
+    NX.Output.print('║        REELSHELL — COMMAND REFERENCE         ║', 'line-info');
     NX.Output.print('╚══════════════════════════════════════════════╝', 'line-info');
     NX.Output.print('');
     var sorted = Object.keys(COMMANDS).sort();
@@ -1647,8 +1647,8 @@
 
   register('sysinfo', 'Display system information', 'sysinfo', function() {
     var rows = [
-      ['OS', '<span style="color:var(--term-cyan)">NEXTERM/Web 3.2</span>'],
-      ['Shell', '<span style="color:var(--term-text)">nxsh 3.2.0</span>'],
+      ['OS', '<span style="color:var(--term-cyan)">Reelshell/Web 3.2</span>'],
+      ['Shell', '<span style="color:var(--term-text)">reelsh 3.2.0</span>'],
       ['User', '<span style="color:var(--term-green)">' + NX.Output.escapeHtml(NX.State.currentUser) + '</span>'],
       ['Resolution', '<span style="color:var(--term-text)">' + window.innerWidth + 'x' + window.innerHeight + '</span>'],
       ['Commands', '<span style="color:var(--term-amber)">' + Object.keys(COMMANDS).length + ' loaded</span>'],
@@ -1680,8 +1680,8 @@
     NX.Output.print('Theme changed to <span style="color:' + t.main + '">' + args[0] + '</span>', 'line-success');
   });
 
-  register('banner', 'Display the NEXTERM banner', 'banner', function() {
-    NX.Output.print('<span class="nexterm-wordmark">NEXTERM</span> <span style="color:var(--term-muted)">// Web Terminal v3.2</span>');
+  register('banner', 'Display the Reelshell banner', 'banner', function() {
+    NX.Output.print('<span class="reelshell-wordmark">REELSHELL</span> <span style="color:var(--term-muted)">// A browser terminal you can rewind</span>');
     NX.Output.print('Type <span style="color:var(--term-amber)">help</span> to begin.', 'line-system');
   });
 
@@ -1689,7 +1689,7 @@
     var text = NX.DOM.output.innerText;
     var blob = new Blob([text], { type: 'text/plain' });
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'nexterm-session.txt'; a.click();
+    a.href = URL.createObjectURL(blob); a.download = 'reelshell-session.txt'; a.click();
     NX.Output.print('Session exported.', 'line-success');
   });
 
@@ -1738,7 +1738,7 @@
     if (COMMANDS[cmd]) {
       COMMANDS[cmd].fn(args);
     } else {
-      NX.Output.print('nexterm: command not found: <span style="color:var(--term-red)">' + NX.Output.escapeHtml(cmd) + '</span>', 'line-error');
+      NX.Output.print('reelshell: command not found: <span style="color:var(--term-red)">' + NX.Output.escapeHtml(cmd) + '</span>', 'line-error');
       var suggestions = Object.keys(COMMANDS).filter(function(c) { return c.startsWith(cmd.slice(0, 2)); });
       if (suggestions.length) {
         NX.Output.print('Did you mean: ' + suggestions.map(function(s) { return '<span style="color:var(--term-cyan)">' + s + '</span>'; }).join(', ') + '?', 'line-system');
@@ -1761,7 +1761,7 @@
       'Memory test: 512 MB ... PASS',
       'Loading kernel modules...',
       'Mounting filesystem... /dev/vfs0',
-      'Initializing NEXTERM shell v3.2...',
+      'Initializing Reelshell v3.2...',
       'Starting DVR subsystem... OK',
       '',
       'SYSTEM READY',
@@ -1785,7 +1785,7 @@
     if (!loaded) {
       NX.Commands.execute('banner', true);
       NX.Output.print('');
-      NX.Output.print('Welcome to <span style="color:var(--term-green)">NEXTERM</span> — your browser-based terminal.', 'line-system');
+      NX.Output.print('Welcome to <span style="color:var(--term-green)">Reelshell</span> — a browser terminal you can rewind.', 'line-system');
       NX.Output.print('');
     }
 

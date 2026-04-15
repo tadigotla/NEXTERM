@@ -6,7 +6,7 @@ TBD - created by archiving change persistent-session. Update Purpose after archi
 ## Requirements
 ### Requirement: Session state survives browser reload
 
-Nexterm SHALL persist session state across browser reloads of `terminal.html` so that the user can reload the page and continue where they left off. The persisted state SHALL include, at minimum: active theme, active mode (light/dark), font size, username, current working directory, recording-enabled flag, command history, virtual filesystem contents, DVR snapshot timeline, current output display, session start timestamp, and command count.
+Reelshell SHALL persist session state across browser reloads of `terminal.html` so that the user can reload the page and continue where they left off. The persisted state SHALL include, at minimum: active theme, active mode (light/dark), font size, username, current working directory, recording-enabled flag, command history, virtual filesystem contents, DVR snapshot timeline, current output display, session start timestamp, and command count.
 
 #### Scenario: User reloads after mutating state
 - **WHEN** the user changes theme, changes mode, drags the font knob, changes username, navigates the virtual filesystem, creates files, runs several commands, and then reloads the page
@@ -19,7 +19,7 @@ Nexterm SHALL persist session state across browser reloads of `terminal.html` so
 
 ### Requirement: Tier 1 prefs load synchronously before first paint
 
-The following session fields SHALL be stored in synchronous browser storage (`localStorage`) under the key `nexterm:prefs:v1` and SHALL be read and applied before the first rendered frame after page load: theme name, mode, font size, username, current working directory, recording-enabled flag, and the `firstBootSeen` flag. No user-visible "flash of default values" SHALL occur between first paint and Tier 1 hydration.
+The following session fields SHALL be stored in synchronous browser storage (`localStorage`) under the key `reelshell:prefs:v1` and SHALL be read and applied before the first rendered frame after page load: theme name, mode, font size, username, current working directory, recording-enabled flag, and the `firstBootSeen` flag. No user-visible "flash of default values" SHALL occur between first paint and Tier 1 hydration.
 
 #### Scenario: Returning user with light mode and amber theme reloads
 - **WHEN** the user previously set amber theme and light mode, then reloads
@@ -33,7 +33,7 @@ The following session fields SHALL be stored in synchronous browser storage (`lo
 
 ### Requirement: Tier 2 session loads asynchronously after boot
 
-The following session fields SHALL be stored in `IndexedDB` under database `nexterm`, object store `session`: command history (bounded), virtual filesystem tree, DVR snapshot timeline (bounded), current output HTML (`currentScreen`), session start timestamp, command count. These SHALL be loaded asynchronously after the boot animation completes and SHALL replace the terminal's default in-memory state once available.
+The following session fields SHALL be stored in `IndexedDB` under database `reelshell`, object store `session`: command history (bounded), virtual filesystem tree, DVR snapshot timeline (bounded), current output HTML (`currentScreen`), session start timestamp, command count. These SHALL be loaded asynchronously after the boot animation completes and SHALL replace the terminal's default in-memory state once available.
 
 #### Scenario: Boot animation plays while IDB loads in background
 - **WHEN** the page loads
@@ -56,7 +56,7 @@ Every mutation to a Tier 1 field SHALL trigger a synchronous write of the full T
 
 #### Scenario: User changes theme
 - **WHEN** the user runs `theme amber`
-- **THEN** immediately after the theme is applied to the DOM, `localStorage['nexterm:prefs:v1']` is updated with the new theme name
+- **THEN** immediately after the theme is applied to the DOM, `localStorage['reelshell:prefs:v1']` is updated with the new theme name
 - **AND** if the user reloads one second later, the theme is restored
 
 #### Scenario: User drags the font knob
@@ -106,12 +106,12 @@ Every persisted record (Tier 1 and Tier 2) SHALL include a `schemaVersion` integ
 
 ### Requirement: `wipe` command clears persisted state
 
-Nexterm SHALL provide a built-in `wipe` command that, after an explicit `yes` confirmation, clears the Tier 1 `localStorage` key, deletes the Tier 2 IndexedDB database, and reloads the page. Any input other than `yes` on the confirmation line SHALL cancel the wipe and return the user to the prompt without modifying any storage.
+Reelshell SHALL provide a built-in `wipe` command that, after an explicit `yes` confirmation, clears the Tier 1 `localStorage` key, deletes the Tier 2 IndexedDB database, and reloads the page. Any input other than `yes` on the confirmation line SHALL cancel the wipe and return the user to the prompt without modifying any storage.
 
 #### Scenario: User wipes
 - **WHEN** the user runs `wipe` and types `yes` at the confirmation prompt
-- **THEN** `localStorage.removeItem('nexterm:prefs:v1')` is called
-- **AND** `indexedDB.deleteDatabase('nexterm')` is called
+- **THEN** `localStorage.removeItem('reelshell:prefs:v1')` is called
+- **AND** `indexedDB.deleteDatabase('reelshell')` is called
 - **AND** the page is reloaded
 - **AND** after reload, the terminal is in a pristine default state
 
@@ -130,7 +130,7 @@ Nexterm SHALL provide a built-in `wipe` command that, after an explicit `yes` co
 The first successful boot on a device with no prior Tier 1 data SHALL display a one-line notice after the boot animation: `PERSISTENCE: ENABLED  ·  type 'wipe' to clear`. The notice SHALL then set a `firstBootSeen: true` flag in Tier 1 so that subsequent boots do not re-display it.
 
 #### Scenario: Fresh install boot
-- **WHEN** a user opens `terminal.html` for the first time on a device with no `nexterm:prefs:v1` key
+- **WHEN** a user opens `terminal.html` for the first time on a device with no `reelshell:prefs:v1` key
 - **THEN** after the boot animation, the terminal prints the one-line notice
 - **AND** the `firstBootSeen` flag is set to `true` and persisted to Tier 1
 

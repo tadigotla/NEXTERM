@@ -9,7 +9,7 @@
 
   function printPromptEcho(cmd) {
     print(
-      '<span class="prompt-user">' + NX.State.currentUser + '@nexterm</span><span class="prompt-separator">:</span><span class="prompt-user">' + NX.State.cwd + '$</span> <span class="prompt-cmd">' + escapeHtml(cmd) + '</span>',
+      '<span class="prompt-user">' + NX.State.currentUser + '@reelshell</span><span class="prompt-separator">:</span><span class="prompt-user">' + NX.State.cwd + '$</span> <span class="prompt-cmd">' + escapeHtml(cmd) + '</span>',
       'line-prompt-echo'
     );
   }
@@ -28,7 +28,7 @@
   }
 
   function updatePrompt() {
-    NX.DOM.promptLbl.textContent = NX.State.currentUser + '@nexterm:' + NX.State.cwd + '$';
+    NX.DOM.promptLbl.textContent = NX.State.currentUser + '@reelshell:' + NX.State.cwd + '$';
   }
 
   function updateStatus() {

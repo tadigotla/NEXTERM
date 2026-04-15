@@ -6,7 +6,7 @@ TBD - created by archiving change persistent-session. Update Purpose after archi
 ## Requirements
 ### Requirement: No network egress at runtime
 
-Nexterm SHALL NOT contain any code path that initiates outbound network communication. The source tree SHALL NOT reference `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `navigator.sendBeacon`, `navigator.serviceWorker`, `import()` of remote URLs, dynamic `<script>` injection with external `src`, or any other mechanism that causes the browser to make a network request on behalf of the app.
+Reelshell SHALL NOT contain any code path that initiates outbound network communication. The source tree SHALL NOT reference `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `navigator.sendBeacon`, `navigator.serviceWorker`, `import()` of remote URLs, dynamic `<script>` injection with external `src`, or any other mechanism that causes the browser to make a network request on behalf of the app.
 
 #### Scenario: Source audit
 - **WHEN** a reviewer greps the source tree and the generated `terminal.html` for network API identifiers
@@ -35,7 +35,7 @@ Nexterm SHALL NOT contain any code path that initiates outbound network communic
 
 ### Requirement: No external resource references
 
-Nexterm SHALL NOT reference external resources. `terminal.html` SHALL NOT include any `<link rel="stylesheet" href="http...">`, `<script src="http...">`, `<img src="http...">`, external font imports (`@import url(...)`, `@font-face src: url(http...)`), or any other dependency on a non-`'self'` origin.
+Reelshell SHALL NOT reference external resources. `terminal.html` SHALL NOT include any `<link rel="stylesheet" href="http...">`, `<script src="http...">`, `<img src="http...">`, external font imports (`@import url(...)`, `@font-face src: url(http...)`), or any other dependency on a non-`'self'` origin.
 
 #### Scenario: Asset audit
 - **WHEN** a reviewer inspects `terminal.template.html` and the generated `terminal.html`
@@ -44,19 +44,19 @@ Nexterm SHALL NOT reference external resources. `terminal.html` SHALL NOT includ
 
 ### Requirement: Persisted data stays same-origin
 
-All persisted session data SHALL remain under the origin of the loaded `terminal.html`. Nexterm SHALL NOT write persisted data to any location outside the browser's same-origin storage partitions (`localStorage`, `IndexedDB`). Nexterm SHALL NOT transmit persisted data to any remote service.
+All persisted session data SHALL remain under the origin of the loaded `terminal.html`. Reelshell SHALL NOT write persisted data to any location outside the browser's same-origin storage partitions (`localStorage`, `IndexedDB`). Reelshell SHALL NOT transmit persisted data to any remote service.
 
 #### Scenario: User inspects storage in devtools
 - **WHEN** the user opens browser devtools and inspects storage for the origin
-- **THEN** all persisted nexterm data is visible under this origin's `localStorage` and `IndexedDB`
-- **AND** no nexterm data appears under any other origin, cookies, service worker caches, or anywhere else
+- **THEN** all persisted Reelshell data is visible under this origin's `localStorage` and `IndexedDB`
+- **AND** no Reelshell data appears under any other origin, cookies, service worker caches, or anywhere else
 
 ### Requirement: User-visible wipe and storage status
 
 The user SHALL at all times have a visible, one-step way to clear persisted data (`wipe` command) and to inspect what is currently stored (`sysinfo` persistence block). These controls SHALL be documented in the README and in the in-terminal `help` text.
 
 #### Scenario: User wants to erase their session
-- **WHEN** the user decides they want to clear everything nexterm has stored
+- **WHEN** the user decides they want to clear everything Reelshell has stored
 - **THEN** running `wipe` and confirming with `yes` removes all persisted data and reloads the terminal to a pristine state
 - **AND** no other steps (opening devtools, editing files, clearing browser data site-wide) are required
 
@@ -66,7 +66,7 @@ The user SHALL at all times have a visible, one-step way to clear persisted data
 
 ### Requirement: No telemetry
 
-Nexterm SHALL NOT collect, send, or log analytics, crash reports, usage metrics, error tracking, or any other form of telemetry. No user input, command history, filesystem contents, or terminal output SHALL be observed by any party other than the user themselves.
+Reelshell SHALL NOT collect, send, or log analytics, crash reports, usage metrics, error tracking, or any other form of telemetry. No user input, command history, filesystem contents, or terminal output SHALL be observed by any party other than the user themselves.
 
 #### Scenario: Source audit
 - **WHEN** a reviewer greps the source tree for telemetry-related identifiers (`analytics`, `telemetry`, `sentry`, `mixpanel`, `datadog`, `segment`, `track(`, `metric(`, etc.)

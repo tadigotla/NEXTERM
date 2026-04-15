@@ -6,7 +6,7 @@
       'Memory test: 512 MB ... PASS',
       'Loading kernel modules...',
       'Mounting filesystem... /dev/vfs0',
-      'Initializing NEXTERM shell v3.2...',
+      'Initializing Reelshell v3.2...',
       'Starting DVR subsystem... OK',
       '',
       'SYSTEM READY',
@@ -30,7 +30,7 @@
     if (!loaded) {
       NX.Commands.execute('banner', true);
       NX.Output.print('');
-      NX.Output.print('Welcome to <span style="color:var(--term-green)">NEXTERM</span> — your browser-based terminal.', 'line-system');
+      NX.Output.print('Welcome to <span style="color:var(--term-green)">Reelshell</span> — a browser terminal you can rewind.', 'line-system');
       NX.Output.print('');
     }
 

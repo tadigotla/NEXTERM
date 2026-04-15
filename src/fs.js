@@ -3,7 +3,7 @@
     '~': {
       type: 'dir',
       children: {
-        'readme.txt': { type: 'file', content: 'Welcome to NEXTERM v3.2\nA web-based terminal emulator.\nType "help" for available commands.' },
+        'readme.txt': { type: 'file', content: 'Welcome to Reelshell v3.2\nA browser terminal you can rewind.\nType "help" for available commands.' },
         'notes.txt': { type: 'file', content: 'TODO:\n- Finish the project\n- Deploy to production\n- Celebrate' },
         'projects': {
           type: 'dir',

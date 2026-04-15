@@ -14,7 +14,7 @@
       return;
     }
     NX.Output.print('╔══════════════════════════════════════════════╗', 'line-info');
-    NX.Output.print('║         NEXTERM — COMMAND REFERENCE          ║', 'line-info');
+    NX.Output.print('║        REELSHELL — COMMAND REFERENCE         ║', 'line-info');
     NX.Output.print('╚══════════════════════════════════════════════╝', 'line-info');
     NX.Output.print('');
     var sorted = Object.keys(COMMANDS).sort();
@@ -209,8 +209,8 @@
 
   register('sysinfo', 'Display system information', 'sysinfo', function() {
     var rows = [
-      ['OS', '<span style="color:var(--term-cyan)">NEXTERM/Web 3.2</span>'],
-      ['Shell', '<span style="color:var(--term-text)">nxsh 3.2.0</span>'],
+      ['OS', '<span style="color:var(--term-cyan)">Reelshell/Web 3.2</span>'],
+      ['Shell', '<span style="color:var(--term-text)">reelsh 3.2.0</span>'],
       ['User', '<span style="color:var(--term-green)">' + NX.Output.escapeHtml(NX.State.currentUser) + '</span>'],
       ['Resolution', '<span style="color:var(--term-text)">' + window.innerWidth + 'x' + window.innerHeight + '</span>'],
       ['Commands', '<span style="color:var(--term-amber)">' + Object.keys(COMMANDS).length + ' loaded</span>'],
@@ -242,8 +242,8 @@
     NX.Output.print('Theme changed to <span style="color:' + t.main + '">' + args[0] + '</span>', 'line-success');
   });
 
-  register('banner', 'Display the NEXTERM banner', 'banner', function() {
-    NX.Output.print('<span class="nexterm-wordmark">NEXTERM</span> <span style="color:var(--term-muted)">// Web Terminal v3.2</span>');
+  register('banner', 'Display the Reelshell banner', 'banner', function() {
+    NX.Output.print('<span class="reelshell-wordmark">REELSHELL</span> <span style="color:var(--term-muted)">// A browser terminal you can rewind</span>');
     NX.Output.print('Type <span style="color:var(--term-amber)">help</span> to begin.', 'line-system');
   });
 
@@ -251,7 +251,7 @@
     var text = NX.DOM.output.innerText;
     var blob = new Blob([text], { type: 'text/plain' });
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'nexterm-session.txt'; a.click();
+    a.href = URL.createObjectURL(blob); a.download = 'reelshell-session.txt'; a.click();
     NX.Output.print('Session exported.', 'line-success');
   });
 
@@ -300,7 +300,7 @@
     if (COMMANDS[cmd]) {
       COMMANDS[cmd].fn(args);
     } else {
-      NX.Output.print('nexterm: command not found: <span style="color:var(--term-red)">' + NX.Output.escapeHtml(cmd) + '</span>', 'line-error');
+      NX.Output.print('reelshell: command not found: <span style="color:var(--term-red)">' + NX.Output.escapeHtml(cmd) + '</span>', 'line-error');
       var suggestions = Object.keys(COMMANDS).filter(function(c) { return c.startsWith(cmd.slice(0, 2)); });
       if (suggestions.length) {
         NX.Output.print('Did you mean: ' + suggestions.map(function(s) { return '<span style="color:var(--term-cyan)">' + s + '</span>'; }).join(', ') + '?', 'line-system');

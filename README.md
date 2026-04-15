@@ -1,8 +1,10 @@
-# NEXTERM
+# Reelshell
 
-A retro CRT terminal emulator that lives in a single HTML file.
+**A browser terminal you can rewind.**
 
-NEXTERM is a fully client-side, browser-based shell with a virtual filesystem, 25+ built-in commands, four color themes, a brushed-metal DVR transport for replaying your session, and a glass-pane stardate clock. Zero dependencies, zero build step, zero server — just open [terminal.html](terminal.html) in any modern browser.
+Retro terminal. Rewind, replay, wipe.
+
+Reelshell is a fully client-side, browser-based shell with a virtual filesystem, 25+ built-in commands, four color themes, a brushed-metal DVR transport for replaying your session, a glass-pane stardate clock, and persistent local session state. Zero dependencies, zero build step, zero server, zero network egress — just open [terminal.html](terminal.html) in any modern browser.
 
 ## Quick start
 
@@ -75,16 +77,16 @@ Every reload restores your last session. Two tiers of local storage:
 Nothing persisted ever leaves the device. The shipped HTML includes a strict Content-Security-Policy meta tag (`connect-src 'none'`) that blocks every form of network egress the browser supports — fetch, WebSocket, EventSource, beacon, external scripts, external fonts, external images. There is no telemetry, no analytics, no external anything.
 
 - `sysinfo` shows the persistence block: tiers armed, bytes used, schema version, last-saved time.
-- `wipe` asks for `yes` confirmation, then clears `localStorage`, deletes the `nexterm` IndexedDB database, and reloads the page to a pristine state.
+- `wipe` asks for `yes` confirmation, then clears `localStorage`, deletes the `reelshell` IndexedDB database, and reloads the page to a pristine state.
 
-A schema version is stamped on every persisted record. If a future version of nexterm bumps the schema, old data is ignored (not migrated) and the terminal boots with defaults — no crash, no stale state.
+A schema version is stamped on every persisted record. If a future version of Reelshell bumps the schema, old data is ignored (not migrated) and the terminal boots with defaults — no crash, no stale state.
 
 ## Project layout
 
 ```
 .
 ├── terminal.html              # The entire product
-├── NEXTERM-Specification.md   # Long-form spec — architecture, design system, edge cases
+├── Reelshell-Specification.md # Long-form spec — architecture, design system, edge cases
 ├── openspec/                  # Spec-driven change tracking
 │   ├── specs/                 # Current capabilities (dvr-transport, glass-pane-stardate, ...)
 │   └── changes/archive/       # Historical change proposals with their design + tasks
@@ -93,7 +95,7 @@ A schema version is stamped on every persisted record. If a future version of ne
 
 ## Development
 
-NEXTERM uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven changes. Each feature lands as a proposal → design → spec deltas → task list → implementation, then archives into `openspec/changes/archive/`. The `openspec/specs/` directory is the source of truth for what the terminal currently does. Browse the archive to see how the brushed-metal panel, stardate clock, and subdued themes were each scoped and shipped.
+Reelshell uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven changes. Each feature lands as a proposal → design → spec deltas → task list → implementation, then archives into `openspec/changes/archive/`. The `openspec/specs/` directory is the source of truth for what the terminal currently does. Browse the archive to see how the brushed-metal panel, stardate clock, and subdued themes were each scoped and shipped.
 
 ### Source layout
 

@@ -1,4 +1,4 @@
-# NEXTERM — Web Terminal Emulator v3.2
+# Reelshell — Web Terminal Emulator v3.2
 
 **Technical Specification & Project Reference**
 
@@ -13,7 +13,7 @@
 
 ## 1. Executive Summary
 
-NEXTERM is a fully client-side, browser-based terminal emulator that ships as a single double-clickable HTML file. It provides an authentic retro-CRT terminal experience with a virtual filesystem, 20+ built-in commands, session DVR playback, and a themeable interface. It requires zero server-side infrastructure and runs entirely in the browser via vanilla JavaScript. The JavaScript source is authored as modular files under `src/` and concatenated into `terminal.html` by a dependency-free Node build script; the shipped artifact is still a single HTML file with no external runtime dependencies.
+Reelshell is a fully client-side, browser-based terminal emulator that ships as a single double-clickable HTML file. It provides an authentic retro-CRT terminal experience with a virtual filesystem, 20+ built-in commands, session DVR playback, and a themeable interface. It requires zero server-side infrastructure and runs entirely in the browser via vanilla JavaScript. The JavaScript source is authored as modular files under `src/` and concatenated into `terminal.html` by a dependency-free Node build script; the shipped artifact is still a single HTML file with no external runtime dependencies.
 
 The application is designed for embedding in blogs, documentation sites, and interactive demos — particularly via Codepen embeds on platforms like Substack where direct HTML injection is not supported.
 
@@ -29,7 +29,7 @@ The application is designed for embedding in blogs, documentation sites, and int
 
 ## 2. Architecture
 
-NEXTERM follows a "single-shipped-file, modular source" architecture. The HTML structure, CSS styling, and (concatenated) JavaScript logic are contained within one `terminal.html` file for portability and deployment simplicity. The JavaScript itself is authored as ~11 small modules under `src/` (one per concern: DOM refs, state, output, history, themes, filesystem, DVR, autocomplete, commands, boot, main wiring), each attaching to a shared `window.NX` namespace. A dependency-free `build.mjs` concatenates them into `terminal.html` at build time.
+Reelshell follows a "single-shipped-file, modular source" architecture. The HTML structure, CSS styling, and (concatenated) JavaScript logic are contained within one `terminal.html` file for portability and deployment simplicity. The JavaScript itself is authored as ~11 small modules under `src/` (one per concern: DOM refs, state, output, history, themes, filesystem, DVR, autocomplete, commands, boot, main wiring), each attaching to a shared `window.NX` namespace. A dependency-free `build.mjs` concatenates them into `terminal.html` at build time.
 
 ### 2.1 Technology Stack
 
@@ -104,7 +104,7 @@ The following 20 commands are pre-registered:
 | `calc` | Utility | Evaluate a safe math expression |
 | `weather` | Fun | Display a randomized mock weather report |
 | `theme` | System | Switch terminal color theme (green, amber, cyan, red) |
-| `banner` | System | Display the NEXTERM ASCII art banner |
+| `banner` | System | Display the Reelshell ASCII art banner |
 
 Additional commands include: `colors`, `joke`, `fortune`, `sysinfo`, `history`, and `export`.
 
@@ -120,7 +120,7 @@ Additional commands include: `colors`, `joke`, `fortune`, `sysinfo`, `history`, 
 
 ## 4. Virtual Filesystem
 
-NEXTERM includes an in-memory virtual filesystem implemented as a nested JavaScript object tree. Each node is either a directory (with a `children` object) or a file (with a `content` string). The filesystem persists for the duration of the browser session but resets on page reload.
+Reelshell includes an in-memory virtual filesystem implemented as a nested JavaScript object tree. Each node is either a directory (with a `children` object) or a file (with a `content` string). The filesystem persists for the duration of the browser session but resets on page reload.
 
 ### 4.1 Default Directory Structure
 
@@ -143,7 +143,7 @@ The path resolver supports absolute paths (starting with `~` or `/`), relative p
 
 ## 5. Session DVR (Playback System)
 
-The Session DVR is the defining feature of NEXTERM. It records a snapshot of the terminal's output HTML after every command execution, enabling users to replay their session like a video recording. This is particularly valuable for blog embeds where readers can watch a scripted terminal walkthrough.
+The Session DVR is the defining feature of Reelshell. It records a snapshot of the terminal's output HTML after every command execution, enabling users to replay their session like a video recording. This is particularly valuable for blog embeds where readers can watch a scripted terminal walkthrough.
 
 ### 5.1 Snapshot Mechanism
 

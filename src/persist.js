@@ -1,7 +1,7 @@
 (function(NX) {
   var SCHEMA_VERSION = 1;
-  var PREFS_KEY = 'nexterm:prefs:v1';
-  var DB_NAME = 'nexterm';
+  var PREFS_KEY = 'reelshell:prefs:v1';
+  var DB_NAME = 'reelshell';
   var STORE = 'session';
   var RECORD_ID = 'current';
   var SAVE_DEBOUNCE_MS = 500;
