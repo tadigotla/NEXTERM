@@ -875,11 +875,6 @@
     sessionStart: Date.now(),
     activeThemeName: 'GREEN',
     firstBootSeen: false,
-    FORTUNES: [
-      'The best time to plant a tree was 20 years ago. The second best time is now.',
-      'Simplicity is the ultimate sophistication.',
-      'In the middle of difficulty lies opportunity.',
-    ],
   };
 })(window.NX = window.NX || {});
 
@@ -1590,44 +1585,6 @@
     }
     NX.Output.print('<span style="color:var(--term-cyan)">' + NX.Output.escapeHtml(NX.FS.getAbsPath(parts)) + '</span>');
     walk(node, '');
-  });
-
-  register('calc', 'Evaluate a math expression', 'calc <expr>', function(args) {
-    if (!args.length) return NX.Output.print('Usage: calc &lt;expression&gt;', 'line-warn');
-    try {
-      var expr = args.join(' ').replace(/[^0-9+\-*/().%\s]/g, '');
-      var result = Function('"use strict"; return (' + expr + ')')();
-      NX.Output.print('= <span style="color:var(--term-green);font-weight:600">' + result + '</span>', 'line-success');
-    } catch(e) { NX.Output.print('calc: invalid expression', 'line-error'); }
-  });
-
-  register('weather', 'Mock weather report', 'weather [city]', function(args) {
-    var city = args.join(' ') || 'Terminal City';
-    var temp = [62,65,70,74,78,82,85,88][Math.floor(Math.random()*8)];
-    var conds = ['Clear','Partly Cloudy','Rain','Mostly Sunny'];
-    var cond = conds[Math.floor(Math.random()*4)];
-    NX.Output.print('┌─────────────────────────────────┐');
-    NX.Output.print('│  Weather: <span style="color:var(--term-amber)">' + NX.Output.escapeHtml(city) + '</span>');
-    NX.Output.print('│  Temp: <span style="color:var(--term-green)">' + temp + ' F</span>  |  Cond: ' + cond);
-    NX.Output.print('│  Wind: ' + (Math.floor(Math.random()*20)+3) + ' mph  |  Humid: ' + (Math.floor(Math.random()*60)+30) + '%');
-    NX.Output.print('└─────────────────────────────────┘');
-  });
-
-  register('colors', 'Show color palette', 'colors', function() {
-    NX.Output.print('<span style="color:var(--term-green)">##</span> Green  <span style="color:var(--term-cyan)">##</span> Cyan  <span style="color:var(--term-amber)">##</span> Amber  <span style="color:var(--term-red)">##</span> Red  <span style="color:var(--term-magenta)">##</span> Magenta');
-  });
-
-  register('joke', 'Tell a programming joke', 'joke', function() {
-    var jokes = [
-      'Why do programmers prefer dark mode?\nBecause light attracts bugs.',
-      'A SQL query walks into a bar, sees two tables and asks...\n"Can I JOIN you?"',
-      '!false -- It is funny because it is true.',
-    ];
-    NX.Output.print(jokes[Math.floor(Math.random() * jokes.length)], 'line-info');
-  });
-
-  register('fortune', 'Random fortune', 'fortune', function() {
-    NX.Output.print('> ' + NX.State.FORTUNES[Math.floor(Math.random() * NX.State.FORTUNES.length)], 'line-accent');
   });
 
   function humanSince(ts) {

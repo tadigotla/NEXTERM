@@ -101,12 +101,10 @@ The following 20 commands are pre-registered:
 | `write` | Filesystem | Write text content to an existing file |
 | `rm` | Filesystem | Remove a file or directory |
 | `tree` | Filesystem | Render a recursive directory tree with box-drawing chars |
-| `calc` | Utility | Evaluate a safe math expression |
-| `weather` | Fun | Display a randomized mock weather report |
 | `theme` | System | Switch terminal color theme (green, amber, cyan, red) |
 | `banner` | System | Display the Reelshell ASCII art banner |
 
-Additional commands include: `colors`, `joke`, `fortune`, `sysinfo`, `history`, and `export`.
+Additional commands include: `sysinfo`, `history`, and `export`.
 
 ### 3.3 Input Features
 
@@ -319,7 +317,6 @@ Extend the default filesystem by adding entries to the `FS` object before boot. 
 
 - The virtual filesystem is in-memory only and does not persist across page reloads.
 - DVR snapshots store full HTML copies, which may consume significant memory in very long sessions (hundreds of commands).
-- The `calc` command uses `Function()` for evaluation, which is sandboxed to numeric expressions but should not be extended to arbitrary code execution.
 - Codepen embeds inherit Codepen's Content Security Policy, which may restrict certain `fetch()` targets.
 
 ### 10.2 Potential Enhancements

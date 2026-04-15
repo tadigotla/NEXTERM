@@ -4,7 +4,7 @@
 
 Retro terminal. Rewind, replay, wipe.
 
-Reelshell is a fully client-side, browser-based shell with a virtual filesystem, 25+ built-in commands, four color themes, a brushed-metal DVR transport for replaying your session, a glass-pane stardate clock, and persistent local session state. Zero dependencies, zero build step, zero server, zero network egress — just open [terminal.html](terminal.html) in any modern browser.
+Reelshell is a fully client-side, browser-based shell with a virtual filesystem, a curated set of built-in commands, four color themes, a brushed-metal DVR transport for replaying your session, a glass-pane stardate clock, and persistent local session state. Zero dependencies, zero build step, zero server, zero network egress — just open [terminal.html](terminal.html) in any modern browser.
 
 ## Quick start
 
@@ -21,7 +21,7 @@ That's it. The whole product is a single ~50KB HTML file.
 - **Authentic CRT aesthetic** — phosphor glow, scanlines, screen flicker, BIOS-style boot sequence, four color themes (green / amber / cyan / red), all desaturated for comfortable extended use.
 - **Virtual filesystem** with the commands you'd expect: `ls`, `cd`, `pwd`, `cat`, `tree`, `mkdir`, `touch`, `write`, `rm`. Supports `~`, `..`, `.`, absolute and relative paths.
 - **Session DVR** — every command snapshots the terminal output. A brushed-metal transport bar lets you scrub, step, play back, stop, or toggle recording mid-session.
-- **Stardate panel** — the DVR's right-hand glass pane shows a live clock, day/date, and a slowly cycling ambient line (uptime, command count, active theme, fortunes). Pure-CSS frosted-glass effect over the brushed-metal substrate.
+- **Stardate panel** — the DVR's right-hand glass pane shows a live clock and day/date over a pure-CSS frosted-glass effect layered on the brushed-metal substrate.
 - **Keyboard-first** — full command history (`↑` / `↓`), tab completion, transport shortcuts (`Space`, `Home`, `End`, `←`, `→`), and a focus model that puts you back in the prompt the moment you click anywhere outside the transport.
 - **Persistent session** — reload the page and your theme, mode, font size, username, filesystem, command history, DVR timeline, and current screen are restored exactly where you left them. Nothing ever leaves the device (strict CSP blocks all network egress). Run `wipe` to erase everything with a one-step confirmation.
 
@@ -39,10 +39,6 @@ That's it. The whole product is a single ~50KB HTML file.
 | `cat <file>` | Display file contents |
 | `mkdir <name>` / `touch <name>` / `rm <file>` | Manipulate filesystem entries |
 | `write <file> <content>` | Write content to a file |
-| `calc <expr>` | Evaluate a math expression |
-| `weather [city]` | Mock weather report |
-| `colors` | Show the active color palette |
-| `joke` / `fortune` | Programming jokes and fortunes |
 | `sysinfo` | OS / shell / user / snapshot / recording state |
 | `history` | Command history |
 | `theme <green\|amber\|cyan\|red>` | Switch color theme |
@@ -109,7 +105,7 @@ src/                       # JavaScript modules — source of truth
 ├── fs.js                  # virtual filesystem + path resolver
 ├── dvr.js                 # snapshot timeline + playback transport
 ├── autocomplete.js        # tab completion hints
-├── commands.js            # command registry + all 26 built-ins
+├── commands.js            # command registry + all built-ins
 ├── boot.js                # boot animation and initial banner
 └── main.js                # keybindings, font knob, stardate, boot kickoff
 
